@@ -1,62 +1,35 @@
 import { Page, Locator } from '@playwright/test';
+import { HeaderComponent } from '../components/header.component.js';
+import { SidebarComponent } from '../components/sidebar.component.js';
 
 /**
- * Base Page Object representing common layout elements and methods
+ * Abstract Base Page Object establishing shared layout components and generic interactions
  */
 export abstract class BasePage {
   readonly page: Page;
-  readonly shoppingCartLink: Locator;
-  readonly shoppingCartBadge: Locator;
-  readonly menuButton: Locator;
-  readonly logoutSidebarLink: Locator;
-  readonly resetSidebarLink: Locator;
-  readonly closeMenuButton: Locator;
+  readonly header: HeaderComponent;
+  readonly sidebar: SidebarComponent;
+  readonly pageTitle: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.shoppingCartLink = page.locator('[data-test="shopping-cart-link"]');
-    this.shoppingCartBadge = page.locator('[data-test="shopping-cart-badge"]');
-    this.menuButton = page.locator('#react-burger-menu-btn');
-    this.logoutSidebarLink = page.locator('[data-test="logout-sidebar-link"]');
-    this.resetSidebarLink = page.locator('[data-test="reset-sidebar-link"]');
-    this.closeMenuButton = page.locator('#react-burger-cross-btn');
+    this.header = new HeaderComponent(page);
+    this.sidebar = new SidebarComponent(page);
+    this.pageTitle = page.locator('[data-test="title"]');
   }
 
   /**
-   * Get the current count of items in the shopping cart badge.
-   * Returns 0 if badge is not present.
+   * Retrieves the header title text of the current page (e.g., 'Products', 'Your Cart')
    */
-  async getCartItemCount(): Promise<number> {
-    if (await this.shoppingCartBadge.isVisible()) {
-      const text = await this.shoppingCartBadge.innerText();
-      return parseInt(text.trim(), 10) || 0;
-    }
-    return 0;
+  async getPageTitleText(): Promise<string> {
+    return (await this.pageTitle.innerText()).trim();
   }
 
   /**
-   * Open the shopping cart view
-   */
-  async openCart(): Promise<void> {
-    await this.shoppingCartLink.click();
-  }
-
-  /**
-   * Open burger menu and click logout
+   * Open the sidebar and perform logout
    */
   async logout(): Promise<void> {
-    await this.menuButton.click();
-    await this.logoutSidebarLink.waitFor({ state: 'visible' });
-    await this.logoutSidebarLink.click();
-  }
-
-  /**
-   * Reset application state via sidebar
-   */
-  async resetAppState(): Promise<void> {
-    await this.menuButton.click();
-    await this.resetSidebarLink.waitFor({ state: 'visible' });
-    await this.resetSidebarLink.click();
-    await this.closeMenuButton.click();
+    await this.header.openMenu();
+    await this.sidebar.clickLogout();
   }
 }

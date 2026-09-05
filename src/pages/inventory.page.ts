@@ -1,13 +1,20 @@
 import { Page, Locator } from '@playwright/test';
 import { BasePage } from './base.page.js';
+import { CartPage } from './cart.page.js';
 
-export type SortOption = 'az' | 'za' | 'lohi' | 'hilo';
+export type ProductSortOrder = 'az' | 'za' | 'lohi' | 'hilo';
+
+export interface CatalogItem {
+  name: string;
+  price: number;
+  dataTestAdd: string;
+  dataTestRemove: string;
+}
 
 /**
- * Page Object representing the Inventory (Product Catalog) Page
+ * Page Object representing the Product Catalog (Inventory) View
  */
 export class InventoryPage extends BasePage {
-  readonly title: Locator;
   readonly sortDropdown: Locator;
   readonly inventoryItems: Locator;
   readonly itemNames: Locator;
@@ -15,7 +22,6 @@ export class InventoryPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.title = page.locator('[data-test="title"]');
     this.sortDropdown = page.locator('[data-test="product-sort-container"]');
     this.inventoryItems = page.locator('[data-test="inventory-item"]');
     this.itemNames = page.locator('[data-test="inventory-item-name"]');
@@ -23,49 +29,58 @@ export class InventoryPage extends BasePage {
   }
 
   /**
-   * Sort products using the dropdown
-   * 'az': Name (A to Z)
-   * 'za': Name (Z to A)
-   * 'lohi': Price (low to high)
-   * 'hilo': Price (high to low)
+   * Sorts the catalog items using the dropdown filter
    */
-  async selectSortOption(option: SortOption): Promise<void> {
-    await this.sortDropdown.selectOption(option);
+  async sortBy(order: ProductSortOrder): Promise<this> {
+    await this.sortDropdown.selectOption(order);
+    return this;
   }
 
   /**
-   * Returns list of all item names currently rendered in the catalog
+   * Returns list of all item names displayed on the catalog
    */
-  async getAllItemNames(): Promise<string[]> {
+  async getItemNames(): Promise<string[]> {
     return await this.itemNames.allInnerTexts();
   }
 
   /**
-   * Returns list of all item prices parsed as floating point numbers
+   * Returns numeric prices parsed from catalog ($XX.XX -> XX.XX)
    */
-  async getAllItemPrices(): Promise<number[]> {
+  async getItemPrices(): Promise<number[]> {
     const rawPrices = await this.itemPrices.allInnerTexts();
     return rawPrices.map((price) => parseFloat(price.replace('$', '').trim()));
   }
 
   /**
-   * Add item to cart by its button data-test attribute or name
+   * Adds product to cart using strongly typed CatalogItem or string key
    */
-  async addItemByDataTest(dataTestAdd: string): Promise<void> {
-    await this.page.locator(`[data-test="${dataTestAdd}"]`).click();
+  async addItemToCart(item: CatalogItem | string): Promise<this> {
+    const selector = typeof item === 'string' ? item : item.dataTestAdd;
+    await this.page.locator(`[data-test="${selector}"]`).click();
+    return this;
   }
 
   /**
-   * Remove item from cart by its button data-test attribute
+   * Removes product from cart on inventory page
    */
-  async removeItemByDataTest(dataTestRemove: string): Promise<void> {
-    await this.page.locator(`[data-test="${dataTestRemove}"]`).click();
+  async removeItemFromCart(item: CatalogItem | string): Promise<this> {
+    const selector = typeof item === 'string' ? item : item.dataTestRemove;
+    await this.page.locator(`[data-test="${selector}"]`).click();
+    return this;
   }
 
   /**
-   * Click on a product name to navigate to its details view
+   * Navigates to the shopping cart page, returning CartPage instance
    */
-  async clickItemName(name: string): Promise<void> {
-    await this.page.locator('[data-test="inventory-item-name"]', { hasText: name }).click();
+  async openCart(): Promise<CartPage> {
+    await this.header.clickCart();
+    return new CartPage(this.page);
+  }
+
+  /**
+   * Clicks on an item title to open its detail view
+   */
+  async openItemDetails(itemName: string): Promise<void> {
+    await this.page.locator('[data-test="inventory-item-name"]', { hasText: itemName }).click();
   }
 }

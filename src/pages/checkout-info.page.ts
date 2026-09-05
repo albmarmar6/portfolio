@@ -1,34 +1,34 @@
 import { Page, Locator } from '@playwright/test';
 import { BasePage } from './base.page.js';
 import { CheckoutCustomerInfo } from '../data/checkout.data.js';
+import { CheckoutOverviewPage } from './checkout-overview.page.js';
+import { CartPage } from './cart.page.js';
 
 /**
  * Page Object representing Step 1 of Checkout: Customer Information
  */
 export class CheckoutInfoPage extends BasePage {
-  readonly title: Locator;
   readonly firstNameInput: Locator;
   readonly lastNameInput: Locator;
   readonly postalCodeInput: Locator;
   readonly continueButton: Locator;
   readonly cancelButton: Locator;
-  readonly errorMessage: Locator;
+  readonly errorMessageContainer: Locator;
 
   constructor(page: Page) {
     super(page);
-    this.title = page.locator('[data-test="title"]');
     this.firstNameInput = page.locator('[data-test="firstName"]');
     this.lastNameInput = page.locator('[data-test="lastName"]');
     this.postalCodeInput = page.locator('[data-test="postalCode"]');
     this.continueButton = page.locator('[data-test="continue"]');
     this.cancelButton = page.locator('[data-test="cancel"]');
-    this.errorMessage = page.locator('[data-test="error"]');
+    this.errorMessageContainer = page.locator('[data-test="error"]');
   }
 
   /**
-   * Fill personal details
+   * Fills partial or complete customer information
    */
-  async fillInformation(info: Partial<CheckoutCustomerInfo>): Promise<void> {
+  async fillInformation(info: Partial<CheckoutCustomerInfo>): Promise<this> {
     if (info.firstName !== undefined) {
       await this.firstNameInput.fill(info.firstName);
     }
@@ -38,35 +38,39 @@ export class CheckoutInfoPage extends BasePage {
     if (info.postalCode !== undefined) {
       await this.postalCodeInput.fill(info.postalCode);
     }
+    return this;
   }
 
   /**
-   * Complete form and click continue
+   * Fills information and submits, returning CheckoutOverviewPage instance
    */
-  async submitInformation(info: CheckoutCustomerInfo): Promise<void> {
+  async submitInformation(info: CheckoutCustomerInfo): Promise<CheckoutOverviewPage> {
     await this.fillInformation(info);
     await this.continueButton.click();
+    return new CheckoutOverviewPage(this.page);
   }
 
   /**
-   * Click continue button
+   * Clicks continue button (for negative test assertions)
    */
-  async continue(): Promise<void> {
+  async clickContinue(): Promise<this> {
     await this.continueButton.click();
+    return this;
   }
 
   /**
-   * Get error text
+   * Reads error message banner text
    */
   async getErrorMessage(): Promise<string> {
-    await this.errorMessage.waitFor({ state: 'visible' });
-    return (await this.errorMessage.innerText()).trim();
+    await this.errorMessageContainer.waitFor({ state: 'visible' });
+    return (await this.errorMessageContainer.innerText()).trim();
   }
 
   /**
-   * Cancel and return to cart
+   * Cancels checkout and returns to CartPage
    */
-  async cancel(): Promise<void> {
+  async cancel(): Promise<CartPage> {
     await this.cancelButton.click();
+    return new CartPage(this.page);
   }
 }

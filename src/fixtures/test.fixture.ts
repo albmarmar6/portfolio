@@ -21,12 +21,12 @@ export type TestFixtures = {
 };
 
 /**
- * Extended Playwright test instance with Page Objects and authenticated state fixtures
+ * Extended Playwright test instance with Page Objects, authenticated state, and auto-cleanup teardown
  */
 export const test = baseTest.extend<TestFixtures>({
   page: async ({ page }, use) => {
     await use(page);
-    // Automatic teardown: Close the browser page/window as soon as the test finishes
+    // Automatic teardown: Close the page upon test completion
     await page.close();
   },
 
@@ -55,15 +55,14 @@ export const test = baseTest.extend<TestFixtures>({
   },
 
   /**
-   * Pre-authenticated fixture that navigates to base URL, performs login with standard user,
-   * and provides ready-to-use InventoryPage instance.
+   * Pre-authenticated fixture that navigates to base URL, logs in with standard user,
+   * and provides a ready-to-use InventoryPage instance.
    */
   loggedInAsStandardUser: async ({ page }, use) => {
     const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login(USERS.STANDARD.username, USERS.STANDARD.password);
-    const inventoryPage = new InventoryPage(page);
-    await expect(inventoryPage.title).toBeVisible();
+    await loginPage.navigate();
+    const inventoryPage = await loginPage.loginAs(USERS.STANDARD);
+    await expect(inventoryPage.pageTitle).toBeVisible();
     await use(inventoryPage);
   },
 });

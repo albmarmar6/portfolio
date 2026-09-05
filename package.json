@@ -1,18 +1,26 @@
 {
   "name": "qa-automation-portfolio",
-  "version": "1.0.0",
-  "description": "Enterprise-ready QA Automation Portfolio Framework with Playwright & TypeScript",
+  "version": "2.0.0",
+  "description": "Enterprise-Grade QA Automation Framework with Playwright, TypeScript, Fluent POM, REST API & Hybrid Testing",
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
     "test:chromium": "playwright test --project=chromium",
     "test:firefox": "playwright test --project=firefox",
     "test:webkit": "playwright test --project=webkit",
+    "test:sauce": "playwright test tests/saucedemo",
+    "test:booker": "playwright test tests/restful-booker",
+    "test:api": "playwright test --grep @api",
+    "test:e2e": "playwright test --grep @e2e",
+    "test:hybrid": "playwright test --grep @hybrid",
+    "test:mocking": "playwright test --grep @mocking",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "report": "playwright show-report",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write ."
   },
   "keywords": [
     "playwright",
@@ -22,13 +30,20 @@
     "testing",
     "e2e",
     "sdet",
-    "page-object-model"
+    "api-testing",
+    "page-object-model",
+    "mocking"
   ],
   "author": "Alberto Martín",
   "license": "MIT",
   "devDependencies": {
     "@playwright/test": "^1.50.0",
     "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-playwright": "^2.0.0",
+    "prettier": "^3.5.0",
     "typescript": "^5.7.0"
   }
 }
