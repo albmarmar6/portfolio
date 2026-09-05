@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Playwright Test Artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/
+
+# Environment Variables
+.env
+.env.local
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
