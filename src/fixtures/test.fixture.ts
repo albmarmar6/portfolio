@@ -24,6 +24,12 @@ export type TestFixtures = {
  * Extended Playwright test instance with Page Objects and authenticated state fixtures
  */
 export const test = baseTest.extend<TestFixtures>({
+  page: async ({ page }, use) => {
+    await use(page);
+    // Automatic teardown: Close the browser page/window as soon as the test finishes
+    await page.close();
+  },
+
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page));
   },
